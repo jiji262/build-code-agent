@@ -104,6 +104,20 @@ src/src/
 
 这就是 Headless First 在实现层面的兑现：**没有"CLI 专属逻辑"和"SDK 专属逻辑"两条平行实现**。CLI 和 SDK 是同一座建筑的两个门。
 
+> **补一条线上实测：同一座建筑，两个门递出去的东西并不一样。**
+> 实现层面共享是一回事，发给模型的那一份是另一回事。用本地代理记录 2.1.258 实际发出的请求，同一模型、同一天（2026-09-02，`claude-fable-5-1`）：
+>
+> | 入口 | 系统提示词字符数 | 工具定义数 |
+> |---|---:|---:|
+> | 交互式 CLI（`cc_entrypoint=cli`） | 26,131 | 35 |
+> | `-p` / Agent SDK（`cc_entrypoint=sdk-cli`） | 20,806 | 29 |
+>
+> 开头那句身份也随之改写：`You are Claude Code, Anthropic's official CLI for Claude` → `You are a Claude agent, built on Anthropic's Claude Agent SDK`。入口本身写在请求头的 `cc_entrypoint` 字段里，所以这是观察到的，不是推断的。
+>
+> 也就是说：**没有两条平行实现，但有两套配置**。写 SDK 集成时按交互态的工具面去设计，就会多出六个它根本看不见的工具。
+>
+> 数据来源：<https://github.com/Continuum-AI-Corp/OrcaPromptVault/tree/main/Claude-Code>，每份带日期，复现命令见该库 `docs/CAPTURES.md`。
+
 ### 18.1.4 与其他 Agent SDK 的对比
 
 把 Claude Agent SDK 和市面上几个常见的 Agent 框架并排放：
