@@ -1408,7 +1408,21 @@ Feature Flags、Analytics、Cost Tracking 是 Claude Code 作为可观测产品�
 
 读完本章后,读者应该能回答这些问题:Feature Flag 客户端为什么需要三层缓存?为什么 Analytics 要用 marker type 而不是运行时正则?cost-tracker 如何在 345 行代码内完成多模型分账?Token Budget 的三档阈值与 Ch08 的压缩四策略是什么对应关系?用户如何在企业环境中精确控制隐私边界?这些问题的答案,共同勾勒出一个"可观测、可计费、可审计"的 Agent 产品的工程内涵。
 
-下一章将进入 Plugin / Skill / MCP 三大扩展机制——它们让 Claude Code 不仅是一个"封闭的 CLI 工具",更是一个"开放的 Agent 平台"。本章介绍的 Feature Flag 与 Analytics 基础设施会在那里继续发挥作用:Plugin 加载受 Feature Flag 控制,Skill 调用频率被 Analytics 记录,MCP server 的成本与 token 消耗也被 cost-tracker 追踪。可观测性是平台扩展的前提——没有"看见"就没有"治理",没有"治理"就没有"开放"。
+下一章将进入 Claude Agent SDK——它让 Claude Code 不仅是一个"封闭的 CLI 工具"，更是一个可嵌入任意生产系统的编程代理内核。
+
+### 2026 演进补充：Claude 5.5 家族价格体系、分级 Effort 与 OpenTelemetry 增强
+
+把本章的 Cost Tracking 与 Telemetry 机制放到 2026 年 11 月（`v2.1.326`）的生产环境中对照，有三个直接影响工程落地的新变化：
+
+1. **Claude 5.5 与 Fable 5.2 新一代价格矩阵（全系标配 1M 上下文 / 128K 输出）**：
+   相比 `v2.1.88` 时期的 Claude 4.6/4.7（如 Opus 4.7 的 \$15/\$75 每百万 Token），2026 年下半年发布的 Claude 5.5 家族单价大幅下探，并新增了定位在 Opus 之上的极限工程层级 **Fable 5.2**：
+   - `claude-fable-5-2`（2026-11 发布）：输入 **\$8.00** / 输出 **\$40.00** 每 MTok（Fast Mode 为 \$16 / \$80）
+   - `claude-opus-5-5`（2026-09 发布，Pro/Team 默认模型）：输入 **\$4.00** / 输出 **\$20.00** 每 MTok
+   - `claude-sonnet-5-5`（2026-09 发布）：输入 **\$2.00** / 输出 **\$10.00** 每 MTok（Cache Read 仅 \$0.10）
+   - `claude-haiku-5-5`（2026-10 发布）：输入 **\$0.10** / 输出 **\$0.50** 起每 MTok（较 Haiku 4.5 平均降本约 75%）
+   这也再次印证了 §17.7 将 `PRICING` 设计为声明式字典表的价值——模型代际更迭与旧模型退役（如 `claude-sonnet-4-5` 于 2026-11-30 退役）只需更新价格配置表即可平滑过渡。
+2. **Per-Model Effort 与 `/effort ultracode`（`v2.1.284`–`v2.1.31x`）**：思考预算（Effort）改为按模型独立保存在 `modelSettings` 中，新增 `maxEffortLevel` 上限、`CLAUDE_CODE_SUBAGENT_EFFORT` 子代理独立限流，以及独立解耦的 `/effort ultracode` 与 `xhigh` 档 `ultrathink` 开关。
+3. **可观测性透明度增强（`v2.1.326`）**：新增 `OTEL_RESOURCE_INCLUDE_HOST` 环境变量控制 OpenTelemetry 主机属性上报，并在 `/status` 面板显式展示被网关或环境变量（如 `DISABLE_TELEMETRY`）禁用的特性状态行。
 
 ## 思考题
 

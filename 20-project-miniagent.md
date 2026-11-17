@@ -73,7 +73,7 @@ mini-agent/
     "dev": "tsc --watch & node --watch dist/index.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0"
+    "@anthropic-ai/sdk": "^1.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -82,7 +82,7 @@ mini-agent/
 }
 ```
 
-唯一的运行时依赖是 `@anthropic-ai/sdk`。Claude Code 的 `package.json` 依赖了上百个包（ink、zod、lodash-es、chalk......），但核心 API 交互只需要这一个。
+唯一的运行时依赖是 `@anthropic-ai/sdk`（`v1.9.0`，默认对应 `anthropic-version: 2026-10-21`，要求 Node.js 20 LTS+；注意 `1.x` 已全面移除旧版 `temperature` / `top_p` / `top_k` 参数并改用 `Authorization: Bearer` 认证头）。Claude Code 的 `package.json` 依赖了上百个包（ink、zod、lodash-es、chalk......），但核心 API 交互只需要这一个。
 
 ### 20.2.2 tsconfig.json
 
@@ -1193,7 +1193,7 @@ export class ContextManager {
       const summaryContent = this.buildSummaryContent(messagesToCompress);
 
       const response = await this.client.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-5-5",
         max_tokens: 2048,
         system:
           "You are a conversation summarizer. Summarize the conversation history below into a concise but comprehensive summary. " +
@@ -1979,7 +1979,7 @@ import type { AgentConfig } from "./types.js";
 function parseArgs(): AgentConfig {
   const args = process.argv.slice(2);
   const config: AgentConfig = {
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-5-5",
     maxTokens: 16384,
     cwd: process.cwd(),
     enablePermissionCheck: true,
@@ -2033,7 +2033,7 @@ function printUsage(): void {
 Usage: mini-agent [options] [directory]
 
 Options:
-  -m, --model <model>       Model to use (default: claude-sonnet-4-20250514)
+  -m, --model <model>       Model to use (default: claude-sonnet-5-5)
   --cwd <dir>               Working directory
   --max-tokens <n>          Max output tokens (default: 16384)
   --no-permission-check     Disable dangerous command checking

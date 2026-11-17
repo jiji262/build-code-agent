@@ -140,7 +140,7 @@ project-analyzer-mcp/
     "dev:http": "tsx src/http.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0"
+    "@modelcontextprotocol/sdk": "^1.32.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -150,7 +150,7 @@ project-analyzer-mcp/
 }
 ```
 
-> **为什么不用更多依赖？** MCP SDK 已经内置了 JSON-RPC 消息处理、传输层抽象和类型系统。我们要做的分析逻辑（遍历文件系统、解析 `package.json`、计算圈复杂度）全部用 Node.js 内置模块实现，保持零外部运行时依赖，这也是 Claude Code 自身 `entrypoints/mcp.ts` 的设计哲学——MCP Server 的启动速度直接影响 Claude Code 的初始化体验。
+> **为什么不用更多依赖？（附 SDK v1 vs v2 版本提示）** `@modelcontextprotocol/sdk`（`v1.32.2` 长期兼容维护线）已经内置了有状态会话模式下的 JSON-RPC 消息处理、`StdioServerTransport`、`StreamableHTTPServerTransport` 和类型系统，与本章对照的 Claude Code `v2.1.88` 客户端完美咬合（若面向最新的 `2026-07-28` 无状态 MCP 规范开发新服务，则可迁移至 v2 拆分包 `@modelcontextprotocol/server` `^2.4.0`）。我们要做的分析逻辑（遍历文件系统、解析 `package.json`、计算圈复杂度）全部用 Node.js 内置模块实现，保持零额外运行时依赖，这也是 Claude Code 自身 `entrypoints/mcp.ts` 的设计哲学——MCP Server 的启动速度直接影响 Claude Code 的初始化体验。
 
 ### tsconfig.json
 

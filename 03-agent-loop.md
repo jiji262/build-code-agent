@@ -1281,7 +1281,7 @@ async function* agentLoop(
 
     // 阶段 1: 调用 API
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5-5',
       max_tokens: 4096,
       tools,
       messages,
@@ -1365,7 +1365,7 @@ async function* agentLoopWithAbort(
     }
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5-5',
       max_tokens: 4096,
       tools,
       messages,

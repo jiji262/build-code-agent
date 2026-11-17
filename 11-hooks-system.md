@@ -1531,6 +1531,14 @@ Hook 系统在每次工具调用时都会被触发（PreToolUse + PostToolUse）
 
 7. **性能敏感的设计**：快速路径检测、延迟序列化、内部 Hook 快速路径、元数据缓存——在每次工具调用的关键路径上，这些优化确保了亚毫秒级的额外开销。
 
+### 2026 演进补充（v2.1.300–v2.1.325）
+
+在 `v2.1.88` 之后，Hook 系统围绕**契约校验、长任务可观测与退出码防误杀**补充了三项重要加固：
+
+1. **`updatedInput` 强制 Schema 校验（`v2.1.300`）**：当 `PreToolUse` 或 `PermissionRequest` Hook 修改工具入参并返回 `updatedInput` 时，引擎会强制使用目标工具的 Zod `inputSchema` 重新校验改写后的参数，防止自定义脚本注入非法结构导致工具崩溃或绕过检查。
+2. **长耗时 Hook 心跳机制（`v2.1.323`）**：在 SDK 与 `-p` 无头模式下，运行时间较长的 Hook 会按 `CLAUDE_CODE_HOOK_HEARTBEAT_INTERVAL_MS`（默认 30 秒）定期发出进度心跳，避免宿主进程误判死锁超时。
+3. **策略 Hook 退出码语义收紧（`v2.1.325`）**：此前策略 Hook 脚本若因普通运行时异常返回退出码 `1`（且未输出 JSON 决策），可能意外阻断主流程；自 `v2.1.325` 起，退出码 `1` 且无 JSON 决策不再阻断执行——若要显式拦截工具调用，Hook 必须返回退出码 `2` 或输出包含 `"decision": "block"` 的结构化 JSON。
+
 在下一章中，我们将探索 Claude Code 的 MCP（Model Context Protocol）集成——另一个核心扩展机制，它和 Hooks 系统互补，共同构成了 Claude Code 的可扩展性基础设施。
 
 ## 思考题

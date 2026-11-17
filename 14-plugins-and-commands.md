@@ -1910,6 +1910,14 @@ cat ~/.claude/plugins/known_marketplaces.json | jq
 
 7. **Skill / Plugin / Command 三系协作可以一句话总结**：Skill 是材料，Plugin 是套装，Command 是把手。Skill 提供单条 prompt 模板，Plugin 把多个组件打包分发，Command 提供统一的用户/模型调用接口。理解了这三层，就理解了 Claude Code 从"内置工具"演进成"可扩展平台"的全部技术路径。
 
+### 2026 演进补充：JavaScript "Mods"、CI 评测与企业级治理（v2.1.158–v2.1.323）
+
+在本章剖析的 `v2.1.88` 静态声明式插件架构之上，2026 年下半年 Claude Code 的 Plugin 子系统完成了从“静态资产包”到“可编程扩展 + 企业可治理套件”的跃升：
+
+1. **JavaScript "Mods" 可编程扩展（`v2.1.300+`）**：Plugin 不再局限于静态拆分 Markdown/JSON，新增了 JavaScript Hook 模块（Mods）支持——可在终端绘制自定义 UI 面板、在提示词输入框注入 `virtualText` 装饰文本、处理 RTL 排版，并通过 `$.ui.view({ agentId })` 编程式切换多代理转录视图。
+2. **`claude plugin eval` 自动化基准评测**：CLI 原生内置插件评测子命令，可在 CI 流水线中分别以“启用插件”和“不启用插件”的隔离会话运行测试集并自动打分，低于设定阈值直接返回非零退出码阻断发布。
+3. **企业级市场治理与版本锁定（`v2.1.292`–`v2.1.323`）**：新增 `claude plugin install --marketplace`、组织级锁定策略（`strictKnownMarketplaces`、`extraKnownMarketplaces`、`disableSideloadFlags`）、插件级 OpenTelemetry 审计日志，以及 `v2.1.323` 支持的**插件版本与 Git Tag 强制钉死（Pinning）**。
+
 ## 思考题
 
 86 个 Slash 命令中你最高频用哪 5 个？为什么？

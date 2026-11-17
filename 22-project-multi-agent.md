@@ -159,7 +159,7 @@ multi-agent-review/
     "review": "tsx src/main.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.52.0"
+    "@anthropic-ai/sdk": "^1.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -2377,7 +2377,7 @@ export class Coordinator {
     this.taskManager = new TaskManager(this.messageBus)
     this.aggregator = new ResultAggregator()
 
-    const model = options.model ?? 'claude-sonnet-4-20250514'
+    const model = options.model ?? 'claude-sonnet-5-5'
     const maxTokens = options.maxTokensPerWorker ?? 4096
 
     // ━━━━ Worker 配置 ━━━━
@@ -2647,7 +2647,7 @@ import { formatReport, formatJsonReport } from './utils/reporter.js'
  * 使用方式：
  *   ANTHROPIC_API_KEY=xxx npx tsx src/main.ts <repo-path>
  *   ANTHROPIC_API_KEY=xxx npx tsx src/main.ts . --json
- *   ANTHROPIC_API_KEY=xxx npx tsx src/main.ts ./my-project --model claude-haiku-4-20250514
+ *   ANTHROPIC_API_KEY=xxx npx tsx src/main.ts ./my-project --model claude-haiku-5-5
  */
 async function main(): Promise<void> {
   // 解析命令行参数
@@ -2710,7 +2710,7 @@ function printUsage(): void {
 
   Options:
     --json        Output report as JSON (default: formatted text)
-    --model <m>   Claude model to use (default: claude-sonnet-4-20250514)
+    --model <m>   Claude model to use (default: claude-sonnet-5-5)
     --help, -h    Show this help message
 
   Examples:
@@ -2721,7 +2721,7 @@ function printUsage(): void {
     ANTHROPIC_API_KEY=sk-ant-... npx tsx src/main.ts ./my-app --json
 
     # Use a different model
-    ANTHROPIC_API_KEY=sk-ant-... npx tsx src/main.ts . --model claude-haiku-4-20250514
+    ANTHROPIC_API_KEY=sk-ant-... npx tsx src/main.ts . --model claude-haiku-5-5
 
   Workers:
     - Security:    Detects vulnerabilities, hardcoded secrets, injection flaws
@@ -2857,7 +2857,7 @@ ANTHROPIC_API_KEY=sk-ant-xxx npx tsx src/main.ts ./my-project --json | jq '.verd
 ### 使用 Haiku 模型（更快更便宜）
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-xxx npx tsx src/main.ts . --model claude-haiku-4-20250514
+ANTHROPIC_API_KEY=sk-ant-xxx npx tsx src/main.ts . --model claude-haiku-5-5
 ```
 
 ### 在 CI 中使用

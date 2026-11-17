@@ -2110,7 +2110,15 @@ Claude Code 这套"可以在任何地方跑的 Agent"听起来像营销语，但
 
 Anthropic 的工程师在每一个边界（client/server、本机/远端、可信/不可信）都做过认真的取舍。你不需要赞同每一个具体决策，但理解他们为什么这么决策，对你设计自己的分布式系统会有帮助。
 
-下一章我们会从这种"跨设备能力"回到一个更近距离的话题：当一个 Agent 真的在跑大量任务时，它内部是怎么跟踪 token 和 cost 的——`cost-tracker` 模块。
+### 2026 演进补充：Cloud Scheduled Tasks、Channels 与实时流式远控（v2.1.198–v2.1.326）
+
+在 `v2.1.88` 打下的 Bridge 与 Remote 同构底座之上，2026 年下半年跨设备与云端自治产品线完成了三块关键拼图：
+
+1. **Routines 正式升级并更名为 Cloud Scheduled Tasks（2026 年 10 月）**：面向无人值守场景的云端托管沙箱代理（保留 `/routines`、`/schedule` CLI 命令与 `POST .../fire` Webhook 端点），支持 **Cron 定时触发**（最小间隔 1 小时）、**API Bearer Token Webhook 触发** 与 **GitHub 事件触发**（如 `pull_request.opened`、Issue、Release），每次运行自动全新克隆仓库并在 Auto Mode 下独立提交 PR。
+2. **Channels 双向事件推流成熟化**：与“在云端另起隔离容器”的 Cloud Scheduled Tasks 互补，`claude --channels plugin:telegram@claude-plugins-official`（覆盖 Telegram、Discord、iMessage、Slack 及 CI/Sentry 告警）通过 MCP Server 将外部消息或生产告警**直接推入本机正在运行的会话**，无缝复用本机未提交代码与本地环境。
+3. **Remote Control 实时 Token 流与多端扩展（`v2.1.198`–`v2.1.326`）**：`claude remote-control` 新增 `--settings <file>` 配置注入（`v2.1.321`），并在 `v2.1.326` 实现了向手机端与 Web 浏览器的**逐 Token 实时流式回复推送**；与此同时，**Claude in Chrome** 浏览器代理正式 GA（`v2.1.198`），**Claude Desktop Linux 版**开放公测，共享 Artifacts 实时预览也在 `v2.1.178+` 打通。
+
+到这里，前六个模块的源码拆解已经全部收官。从下一章开始，我们将进入**模块七：实战项目**——不再只是读别人的代码，而是亲手从零写出属于你自己的 `MiniAgent`（Ch20）、自定义 `MCP Server`（Ch21）与多代理协作系统（Ch22）。
 
 ---
 

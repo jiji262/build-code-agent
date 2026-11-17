@@ -28,13 +28,13 @@ author: "anonymous"
 
 | 项目 | 信息 |
 |------|------|
-| Claude Code 版本 | **v2.1.88** |
-| 包名 | `@anthropic-ai/claude-code` |
+| 源码剖析基准版本 | **v2.1.88**（2026.11 线上最新已演进至 **v2.1.326**，对照速查见 [`docs/2026-latest-updates.md`](./docs/2026-latest-updates.md)） |
+| 包名 | `@anthropic-ai/claude-code`（CLI 主包）/ `@anthropic-ai/claude-agent-sdk`（独立 SDK 包） |
 | 本地源码路径 | `/Users/johndoe/codes/claude-code-sourcecodes/src/` |
 | 入口文件 | `src/entrypoints/cli.tsx`、`src/main.tsx`、`src/query.ts` |
 | 主要语言 | TypeScript（含 .tsx 用于 React/Ink UI） |
 
-> **为什么选 v2.1.88？** 这是 2.x 大版本中相对稳定、特性集成度最高的发布版。Agent Teams、Coordinator Mode、Routines、Remote Control 都已经合入，但还没有受到 3.x 大重构的影响。后续即便 Anthropic 发布新版本，本课程讲解的核心架构和设计思想都不会过时——Tool 接口、AsyncGenerator 流式架构、MCP 协议、上下文压缩策略，这些是会延续的"沉淀层"。
+> **为什么以 v2.1.88 作为源码行号基准，同时补充 v2.1.326 最新演进？** `v2.1.88` 是网上完整整理流传、结构最清晰的 2.x 黄金快照——Agent Teams、Coordinator Mode、Routines（后更名 Cloud Scheduled Tasks）、Remote Control 都已合入。而从 `v2.1.88` 到 2026 年 11 月的 `v2.1.326`，近 240 个小版本的迭代（如 Code Mode 批量脚本工具调用、Auto Mode 默认化、`AGENTS.md` 自动回退、JavaScript Mods 插件）全部建立在同一套 `Tool` 契约、`AsyncGenerator` 流式管道、MCP 协议与四层压缩骨架之上。锁定 `v2.1.88` 让全书源码行号 1:1 精确可查，各章末尾的 **「2026 演进补充」** 则带你无缝接轨最新生产生态。
 
 ---
 
@@ -187,18 +187,18 @@ ls -la
 
 ## 0.4 关键依赖梳理
 
-打开 `package.json`，能看到几十个依赖。我们只关注最重要的几个：
+打开 `package.json`，能看到几十个依赖。我们只关注最重要的几个（附 2026 年 11 月最新生态版本参考）：
 
-| 依赖 | 用途 | 在课程中的位置 |
-|------|------|---------------|
-| `@anthropic-ai/sdk` | Anthropic Claude API 调用 | Ch03（Agent 循环）、Ch20（项目一） |
-| `@modelcontextprotocol/sdk` | MCP 协议官方 SDK | Ch12（MCP 协议）、Ch21（项目二） |
-| `@anthropic-ai/claude-agent-sdk` | Claude Agent SDK | Ch18（SDK 入口）、Ch22（项目三） |
-| `ink` | 终端 UI 框架（React for CLI） | Ch15 |
-| `react` | Ink 的底层 | Ch15 |
-| `commander` | CLI 命令解析 | Ch02 |
-| `zod` | 运行时 Schema 验证 | 全课程（输入校验、SDK 类型） |
-| `chalk` | 终端颜色输出 | Ch15 |
+| 依赖 | 用途 | 最新生态状态（2026.11） | 在课程中的位置 |
+|------|------|------------------------|---------------|
+| `@anthropic-ai/sdk` | Anthropic Claude API 调用 | `v1.9.0`（API `2026-10-21`，默认移除 `temperature` 等采样参数） | Ch03（Agent 循环）、Ch20/Ch22 |
+| `@modelcontextprotocol/sdk` | MCP 协议官方 SDK | `v1.32.2`（有状态兼容）；v2 已拆分为 `@modelcontextprotocol/server` & `client` `v2.4.0`（`2026-07-28` 无状态规范） | Ch12（MCP 协议）、Ch21（项目二） |
+| `@anthropic-ai/claude-agent-sdk` | Claude Agent SDK | `v0.3.326`（从 CLI 包拆分独立，与 CLI `v2.1.326` 同步；Python 版 `0.2.183`） | Ch18（SDK 入口） |
+| `ink` | 终端 UI 框架（React for CLI） | Claude Code 深度 fork 内嵌于 `src/ink/` | Ch15 |
+| `react` | Ink 的底层 | 声明式终端组件状态树 | Ch15 |
+| `commander` | CLI 命令解析 | 顶层与子命令解析 | Ch02 |
+| `zod` | 运行时 Schema 验证 | 工具入参校验与 SDK 协议序列化 | 全课程（输入校验、SDK 类型） |
+| `chalk` | 终端颜色输出 | ANSI 样式辅助 | Ch15 |
 
 > **设计哲学暗示**：选 React/Ink 而不是 blessed，选 zod 而不是 io-ts，选 commander 而不是 yargs——每一个选择背后都有"开发体验优先 + 类型友好 + 生态成熟度"的权衡。本课程会在用到具体库时讲解这些选型考量。
 

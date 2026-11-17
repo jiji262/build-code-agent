@@ -806,9 +806,9 @@ function isClaudeMdExcluded(filePath: string, type: MemoryType): boolean {
 }
 ```
 
-## 7.4 AGENTS.md 和竞品兼容
+## 7.4 AGENTS.md 开放标准与跨工具兼容
 
-Claude Code 没有原生加载 `AGENTS.md`（Google Gemini）或 `.cursorrules`（Cursor）等竞品配置文件。但在 `/init` 命令中，它会主动扫描并吸收这些文件的内容：
+在 `v2.1.88` 快照时期，Claude Code 尚未在运行时直接加载开放标准 `AGENTS.md`（现由 Linux 基金会旗下的 Agentic AI Foundation / AAIF 托管，已被 60,000+ 开源仓库采用）或 `GEMINI.md`（Google Gemini CLI）、`.cursorrules`（Cursor）等其他工具的配置文件。但在 `/init` 命令中，它会主动扫描并吸收这些文件的内容：
 
 ```typescript
 // 文件: src/commands/init.ts
@@ -825,7 +825,9 @@ configs, CI config, existing CLAUDE.md, .claude/rules/, AGENTS.md, .cursor/rules
    .windsurfrules, .clinerules)`
 ```
 
-设计哲学很清楚：Claude Code 不会在运行时自动加载竞品的配置格式（那会引入不可控的指令源），而是在初始化时提取其中有用的部分，由用户审核后写入 CLAUDE.md。
+早期 `v2.1.88` 的设计考量很明确：避免在运行时无差别混入第三方工具的私有规则，而是在 `/init` 初始化时提取有用信息写入 `CLAUDE.md`。
+
+> **2026 演进补充（v2.1.277 原生兼容 `AGENTS.md`）**：随着 `AGENTS.md`（https://agents.md）成为 AAIF 托管的跨厂商事实标准，Claude Code 自 **`v2.1.277`（2026 年 9 月）** 起正式加入了**原生回退加载机制**——当项目目录中不存在 `CLAUDE.md` 时，运行时会自动读取 `AGENTS.md` 作为项目级指令；若 `CLAUDE.md` 存在，则仍以 `CLAUDE.md` 为准。同时，`v2.1.166+` 新增的 `/cd` 命令支持在会话中途切换工作目录而不破坏已建立的 Prompt Cache。
 
 ## 7.5 指令冲突解决
 

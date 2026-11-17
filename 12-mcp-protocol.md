@@ -40,15 +40,19 @@ Host (Claude Code)
 | Server | 暴露工具/资源/提示词的外部进程 | 用户配置的 MCP Server |
 | Transport | Client 和 Server 之间的通信管道 | stdio / HTTP / SSE / WebSocket 等 |
 
-### 12.1.2 MCP 规范版本
+### 12.1.2 MCP 规范版本演进（`2025-03-26` → `2026-07-28`）
 
-Claude Code v2.1.88 实现的是 MCP 规范 `2025-03-26` 版本，核心特性包括：
+MCP 采用 `YYYY-MM-DD` 日期版本号，目前已发布五版正式规范：`2024-11-05`、`2025-03-26`、`2025-06-18`、`2025-11-25` 与 **`2026-07-28`**。
+
+本章剖析的 Claude Code v2.1.88 源码基于 `@modelcontextprotocol/sdk` v1.x 有状态会话体系（涵盖 `2025-03-26` 至 `2025-11-25` 的核心特性）：
 
 - **JSON-RPC 2.0** 作为消息格式
-- **Streamable HTTP** 传输取代旧版 SSE-only 模式
-- **Tool Annotations**（readOnlyHint、destructiveHint 等）
-- **Elicitation**（Server 向 Client 请求用户输入）
-- **OAuth 2.1 + PKCE** 作为标准认证方案
+- **Streamable HTTP** 传输取代旧版 SSE-only 模式（`2025-03-26` 引入）
+- **Tool Annotations**（`readOnlyHint`、`destructiveHint` 等，`2025-03-26` 引入）
+- **Elicitation**（Server 向 Client 请求用户输入：Form 模式于 `2025-06-18` 引入，URL 模式与 CIMD 客户端元数据文档于 `2025-11-25` 引入）
+- **OAuth 2.1 + PKCE / RFC 9728 资源服务器元数据** 作为标准认证方案
+
+> **2026 最新规范提示（`2026-07-28` 无状态架构重构）**：2026 年 7 月底发布的 MCP `2026-07-28` 规范及配套的 TypeScript SDK v2（拆分为 `@modelcontextprotocol/server` 与 `@modelcontextprotocol/client` `2.4.0`）将协议核心重构为**无状态请求/响应模型**（移除强制 `initialize` 握手与 `Mcp-Session-Id`，改用每请求自描述 `_meta`、`server/discover`、`input_required` 多轮重试 MRTR 与 `Mcp-Method`/`Mcp-Name` HTTP 路由头，并将 Tasks 纳入正式 Extensions 框架）；与此同时，`@modelcontextprotocol/sdk` v1.x（`1.32.2`）作为 `2025-11-25` 兼容维护线继续并行演进。详见本章末尾 §12.14 补充说明。
 
 在 `client.ts` 中可以看到 Client 的初始化声明了对这些特性的支持：
 
@@ -2051,6 +2055,18 @@ MCP 是 Claude Code 可扩展性的基石。本章我们深入分析了它的四
 **管理层**——7 个配置作用域、企业策略管控、Project Server 审批、插件去重、连接器去重——这些机制共同构成了一个安全且灵活的 Server 管理系统。16ms 批量状态更新避免了大量 Server 同时注册时的 UI 性能问题。指数退避重连保证了远程 Server 的弹性。
 
 MCP 不仅仅是一个协议实现。它是 Claude Code 从"AI 编程工具"升级为"AI 编程平台"的关键技术。理解了 MCP 的连接生命周期、工具注册流水线和认证链，你就掌握了为 Claude Code 构建任意扩展能力的核心知识。
+
+### 2026 演进补充：`2026-07-28` 无状态协议重构与注册表爆发
+
+跟进 2026 年下半年 MCP 生态的读者，在掌握本章 `v2.1.88` 源码后还需重点关注三大最新变化：
+
+1. **`2026-07-28` 规范的无状态重构（Stateless Core）**：
+   - **去会话化**：移除了强制 `initialize` 握手与 `Mcp-Session-Id` 会话追踪，每个请求在 `_meta` 中自描述协议版本与客户端能力，按需通过 `server/discover` 探测服务端能力，彻底消除了无服务器（Serverless）与水平扩缩容网关上的粘性会话痛点。
+   - **多轮请求（MRTR）取代长连接反向请求**：服务端在工具执行中需要采样或向用户询问时，不再依赖持久 SSE 通道反向发起请求，而是直接返回 `input_required` 结果，由客户端收集答案后重试原请求。
+   - **网关路由头与可观测性**：新增 `Mcp-Method` 与 `Mcp-Name` HTTP 请求头（API 网关无需解包 JSON 即可按工具名做 RBAC 鉴权），`tools/list` 支持 `ttlMs` / `cacheScope` 缓存提示，`_meta` 原生携带 OpenTelemetry Trace Context。
+   - **Extensions 正式扩展框架**：将长耗时 **MCP Tasks**、**MCP Apps** 与企业托管授权纳入标准扩展，确立 12 个月正式弃用周期。
+2. **TypeScript SDK v2 拆包（`2.4.0` vs `1.32.2`）**：自 2026 年 7 月底 v2 发布起，原单体包拆分为 `@modelcontextprotocol/server`、`@modelcontextprotocol/client` 与 `@modelcontextprotocol/core`（最新 `2.4.0`，实现 `2026-07-28` 规范）；原 `@modelcontextprotocol/sdk`（最新 `1.32.2`）则作为 `2025-11-25` 有状态协议的长期兼容维护分支。
+3. **企业管控与注册中心规模化**：Official MCP Registry 活跃公开 Server 已突破 **48,600+**；Claude Code `v2.1.326` 进一步增加了运行期管理员动态下发 `managed-mcp.json` 时的 `managed_mcp_arrived` 告警机制。
 
 ## 思考题
 

@@ -100,7 +100,8 @@ Claude Code 是 Anthropic 推出的旗舰级 AI 编程代理——它不只是�
 
 | 章节 | 标题 | 核心内容 |
 |------|------|---------|
-| [结束语](./23-conclusion.md) | **回顾与展望** | 8 条贯穿原则、Claude Code 演进趋势、MCP 生态未来、进一步学习路径 |
+| [结束语](./23-conclusion.md) | **回顾与展望** | 8 条贯穿原则、v2.1.88 → v2.1.326 演进全景、MCP 2026-07-28 与 AAIF 生态、进一步学习路径 |
+| [附录](./docs/2026-latest-updates.md) | **2026 全网最新演进速查（2026.11）** | Code Mode、Claude 5.5 & Fable 5.2、MCP 无状态规范、Agent SDK 0.3.x、ACP 与主流竞品对比 |
 
 ---
 
@@ -148,36 +149,38 @@ Claude Code 是 Anthropic 推出的旗舰级 AI 编程代理——它不只是�
 
 ## 技术栈
 
-课程涉及的核心技术：
+课程涉及的核心技术（截至 2026 年 11 月最新生态）：
 
-| 依赖 | 用途 |
-|------|------|
-| `@anthropic-ai/sdk` | Anthropic Claude API |
-| `@anthropic-ai/claude-agent-sdk` | Claude Agent SDK |
-| `@modelcontextprotocol/sdk` | MCP 协议官方 SDK |
-| TypeScript 5.x | 主要语言 |
-| React + Ink | 终端 UI |
-| commander | CLI 解析 |
-| zod | Schema 验证 |
-| AsyncGenerator | 流式数据管道核心 |
+| 依赖 | 最新版本参考 | 用途 |
+|------|-------------|------|
+| `@anthropic-ai/sdk` | `^1.9.0`（API `2026-10-21`） | Anthropic Claude API（Claude 5.5 家族 / Fable 5.2） |
+| `@anthropic-ai/claude-agent-sdk` | `0.3.326`（对齐 CLI `v2.1.326`） | Claude Agent SDK（已从 CLI 主包独立拆分） |
+| `@modelcontextprotocol/sdk` | `^1.32.2`（v1 有状态）/ `@modelcontextprotocol/server` `^2.4.0`（v2 无状态） | MCP 协议官方 SDK |
+| TypeScript 5.x | `>= 5.7`（Node.js 20 LTS+） | 主要语言 |
+| React + Ink | 深度定制内嵌版 | 终端 UI |
+| commander | CLI 解析 | 命令行入口与子命令 |
+| zod | Schema 验证 | 运行时输入校验与 SDK 协议契约 |
+| AsyncGenerator | 语言原生特性 | 流式数据管道核心 |
 
 ---
 
-## 源码版本
+## 源码版本与 2026 最新演进
 
-本课程基于网上流传的 **Claude Code v2.1.88** 源码深度分析，感谢[linux.do 社区](https://linux.do)的信息来源。
+本课程源码行号与核心架构数字严格基于 **Claude Code v2.1.88** 源码快照深度分析（感谢 [linux.do 社区](https://linux.do) 的信息来源），确保全书引用 1:1 可查证。
 
-权威数字校对见 [`docs/canonical-numbers.md`](./docs/canonical-numbers.md)。
+与此同时，各章节与专题附录已同步更新至 **2026 年 11 月全网最新生态**（涵盖 **Claude Code `v2.1.326`** 的 Code Mode、Auto Mode 默认化、Agent Teams、Cloud Scheduled Tasks、Channels、JavaScript Mods，以及 **Claude 5.5 / Fable 5.2**、**MCP `2026-07-28` 无状态协议**、**Linux 基金会 AAIF 十大开放标准** 与 **ACP 协议**）：
+
+- 📌 全网最新演进对照速查：[`docs/2026-latest-updates.md`](./docs/2026-latest-updates.md)
 
 ---
 
 ## 课程数据
 
-- **章节总数**：24 个教学单元（开篇 + 22 章 + 结束语）
-- **正文规模**：40,055 行 Markdown
+- **章节总数**：24 个教学单元（开篇 + 22 章 + 结束语）+ 2026 最新生态速查附录
+- **正文规模**：40,000+ 行 Markdown
 - **配图数量**：142 张统一 hand-drawn-blue 风格 infographic（4 层级体系：全书级 2 + 模块级 7 + 章节级 24 + 章内级 109）
 - **源码引用**：每章都有真实文件路径与行号
-- **实战项目**：3 个完整可落地的工程
+- **实战项目**：3 个完整可落地的工程（已适配 `@anthropic-ai/sdk` `1.9.x` 与 Claude 5.5 模型）
 
 ---
 

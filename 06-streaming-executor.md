@@ -1509,6 +1509,14 @@ class SimpleToolExecutor {
 
 8. **Stream 适配器**：推模型（回调）与拉模型（AsyncGenerator）的转换，是整个流式执行架构中不起眼但至关重要的基础设施。
 
+### 2026 演进补充：从并发 `tool_use` 到 Code Mode（v2.1.323–v2.1.326）
+
+`StreamingToolExecutor` 解决了**单轮 API 响应内**多个独立只读工具的并发执行问题，但若工具之间存在数据依赖（例如先查 MCP 获取 500 条工单 ID，再逐条筛选并调用另一个工具），传统架构仍不得不回退到“每步一次 LLM 往返”，既增加延迟又把海量中间 JSON 塞进上下文。
+
+在 2026 年 11 月发布的 **Claude Code `v2.1.323`–`v2.1.326`** 中，Anthropic 在流式执行引擎之上进一步引入了实验性 **Code Mode**（`CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1`，支持 Claude 5.5 全系与 Fable 5.2）：
+- **批量脚本化工具编排**：Claude 可以直接生成一段 JavaScript 代码并在受控的 Bun REPL 中执行——在单轮内用 `Promise.all` 并发调度工具、用循环/条件串联有依赖的工具链、并在脚本本地过滤与聚合大体积 MCP 输出，只将精简结果回传给上下文窗口（在重度 MCP 工作流中可减少 **40%–77%** 的 Token 消耗）。
+- **整块安全审查与多代理兼容**：执行前由 Auto Mode 安全分类器对整块生成脚本进行静态与语义审查（阻断 `\uXXXX` 等混淆绕过，用户可按 `Ctrl+O` 审阅源码），且在 `v2.1.326` 中已与 **Agent Teams** 进程内队友模式完全打通。
+
 下一章 Ch07 我们进入"上下文与记忆"模块——剖析 Claude Code 的三层上下文模型：System Prompt 是怎么动态组装的？CLAUDE.md 五级加载优先级如何工作？AGENTS.md 与 GEMINI.md 兼容机制又是什么？工具执行的舞台已经搭好，下一步要看清楚演员（消息）在舞台上怎么调度。
 
 ---

@@ -1590,7 +1590,7 @@ Rules:
     ]
 
     const response = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5-5',
       max_tokens: 2000,
       messages: forkMessages,
     })
@@ -1690,7 +1690,7 @@ If something worth saving, respond with JSON:
 If nothing to save, respond: { "memories": [] }`
 
     const response = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1500,
       messages: [
         ...messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
@@ -1784,7 +1784,7 @@ ${content}
 Return the complete updated file, or "NO CHANGES" if nothing to add.`
 
     const response = await this.client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5-5',
       max_tokens: 2000,
       messages: [
         ...messages.map(m => ({

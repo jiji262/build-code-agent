@@ -1517,6 +1517,13 @@ console.log(`[ToolSearch] tool=${tool.name} score=${score} parts=${parsed.parts.
 
 8. **运行时动态性**：条件激活（`paths`）、目录发现（向上扫描）、Signal 通知（缓存失效）构成了一套完整的运行时扩展发现机制——使得 Skill 不是静态配置，而是可以随工作上下文动态变化。
 
+### 2026 生态里程碑：`SKILL.md` 成为 Linux 基金会跨厂商标准
+
+本章剖析的 `SKILL.md` 三阶段渐进式加载设计（启动仅读 `name`/`description` 元数据 → 命中任务再将 `SKILL.md` 正文读入上下文 → 按需访问脚本与参考资料），如今已走出 Claude Code，成为全行业的通用规范：
+
+- **正式捐赠至 AAIF（2026 年 10 月 22 日）**：Anthropic 将发布于 [agentskills.io](https://agentskills.io) 的 **Agent Skills** 开放规范（Apache 2.0）正式捐赠给 Linux 基金会旗下的 **Agentic AI Foundation（AAIF）**，与 `MCP`、`AGENTS.md`、`A2A` 并列为核心托管标准。
+- **一次编写，全代理通用**：截至 2026 年底，基于 `<skill-name>/SKILL.md` 目录契约的技能包不仅能在 Claude Code 中运行，还被 **OpenAI Codex、GitHub Copilot、Cursor、Google Gemini、Microsoft Agent Framework、OpenCode** 原生支持；同时 Claude Code `v2.1.259+` 进一步新增了 `build-eval` 与 `hillclimb` 等迭代评测类内置/官方技能工作流。
+
 > **下一章预告**：Ch14 会讲 Plugin 的容器/分发机制（marketplace、scope、版本管理）和 Slash Command 的 86 种类型抽象（注册、参数解析、与 SkillTool 的合流路径）。Plugin 与 Slash Command 在调度层与 Skill 合流到同一个 `Command` 对象，但生命周期与组织方式各有不同。
 
 ## 思考题

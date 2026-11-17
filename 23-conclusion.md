@@ -117,63 +117,54 @@ Anthropic 没把 Claude Code 做成"自己生态自己玩"。MCP 是公开规范
 
 ---
 
-## 23.3 Claude Code 的演进趋势
+## 23.3 Claude Code 的演进：从 v2.1.88 到 v2.1.326 及更远
 
-学完 v2.1.88 不是终点。Anthropic 仍在持续迭代，下面是几个值得跟进的方向。
+学完 `v2.1.88` 不是终点。从 2026 年 3 月底的 `v2.1.88` 到 2026 年 11 月的 **`v2.1.326`**，Anthropic 在短短七个多月里密集发布了近 240 个小版本。回看我们在 `v2.1.88` 源码里看到的许多预埋伏笔，如今不仅一一兑现，还生长出了全新的形态：
 
-### 趋势一：Agent Teams 走向稳定
+### 演进一：Code Mode——从“逐轮调用工具”到“批量脚本编排”
 
-目前还在 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 的实验性开关后面。一旦稳定，多个 Claude 实例像团队成员一样协作（信箱通信、共享任务列表、tmux 分屏）会成为默认能力。
+在 `v2.1.323`–`v2.1.326` 中登场的实验性 **Code Mode**（`CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1`）打破了“每次工具串联都必须往返一次 LLM”的传统定式：Claude 可以直接编写一段 JavaScript 代码，在受控且经过 Auto Mode 分类器整块审查的 Bun REPL 中运行——一次性并发或串联多个工具，并在本地过滤海量 MCP 响应后再将摘要交还上下文（重度 MCP 场景下节省 **40%–77%** Token），且已与 **Agent Teams** 完全打通。
 
-**关注信号**：`utils/swarm/` 目录的迭代频率，README 里关于 Teams 的描述何时去掉 "experimental"。
+### 演进二：Agent Teams 与五层递归子代理
 
-### 趋势二：Routines（云端定时代理）
+子代理不再局限于单层同步派发——`v2.1.166+` 支持最高 **5 层深度的递归子代理**，`v2.1.198` 起默认异步后台运行并将权限确认冒泡回主终端，`v2.1.31x` 新增 `CLAUDE_CODE_SUBAGENT_EFFORT` 实现主从代理思考预算解耦；而 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 下的多实例团队（共享任务列表、信箱通信、进程内或分屏运行）已在 `v2.1.326` 支持直接以 Code Mode 启动。
 
-不再依赖 `/loop` 在本地循环——Routines 让你可以在 Anthropic 云上注册"每周一早上 9 点跑这个 prompt"或"GitHub PR 创建时触发这个流程"。
+### 演进三：Cloud Scheduled Tasks（原 Routines）与 Channels 双剑合璧
 
-**关注信号**：`schedule` skill、`anthropic-skills:schedule`、官网 docs 关于 Routines 的页面。
+2026 年 10 月，Anthropic 将早期预览的 Routines 正式定名为 **Cloud Scheduled Tasks**（保留 `/routines`、`/schedule` 与 `/fire` Webhook），在托管云沙箱中响应 Cron 定时、API Webhook 与 GitHub 事件（如自动响应 PR/Issue）；而 **Channels**（`claude --channels`）则反其道而行之，通过 MCP Server 将 Telegram、Discord、iMessage、Slack 或 CI 告警**实时推送进你本机正在运行的终端会话**。云端隔离自治与本机实时推流互为补充，彻底让 Claude Code 摆脱了“必须守在电脑前”的束缚。
 
-### 趋势三：Remote Control & Channels
+### 演进四：Auto Mode 默认化、JavaScript Mods 与多端流式协同
 
-手机/任何浏览器都能继续本地终端的会话（Remote Control）。Slack/Telegram/Discord/iMessage 直接发消息进 Claude（Channels）。**Claude Code 不再是"必须坐在终端前"的工具**。
+- **权限默认策略分流**：`v2.1.283+` 起交互式会话默认开启由后台安全分类器护航的 **Auto Mode**；而无头模式（`claude -p`）与 Agent SDK（`v2.1.302+`）则默认锁定为严格的 **Manual 模式**。
+- **Plugin 升级为可编程平台**：在 `.claude-plugin/plugin.json` 之上新增了可绘制自定义 TUI 面板与输入框 `virtualText` 的 **JavaScript "Mods"**（`v2.1.300+`）、CI 自动化评测命令 `claude plugin eval`，以及企业市场白名单与版本 Pinning（`v2.1.323`）。
+- **全端同构流式体验**：`claude remote-control`（`v2.1.326`）支持向手机与 Web 浏览器逐 Token 实时流式推送回复，**Claude in Chrome** 正式 GA，**Claude Desktop Linux 版**开放公测。
 
-**关注信号**：`remote/` 目录、`services/mcp/channelPermissions.ts`、`tools/RemoteTriggerTool/`。
+### 演进五：Claude 5.5 家族、Fable 5.2 与精细化 Effort 控制
 
-### 趋势四：Desktop App + 多会话并行
-
-视觉化 diff review、并排多会话、调度面板——Desktop App 把 CLI 不擅长的"多窗口管理"补上。Teleport（Web → Terminal）和 Dispatch（Phone → Desktop）打通跨设备工作流。
-
-**关注信号**：Anthropic 官网的 Desktop 下载页面、社交媒体上 Anthropic 团队的演示视频。
-
-### 趋势五：Adaptive Thinking 取代 Extended Thinking
-
-Opus 4.7 和 Sonnet 4.6 引入 Adaptive Thinking——模型自己决定何时深入思考，而不是用户显式开关。Claude Code 的 prompt 工程会逐步适配这种"模型自驱"思考模式。
-
-**关注信号**：API docs 里 thinking 字段的演化、`AgentDefinition` 中 `thinking` 选项的默认值变化。
+模型底座已从 Claude 4.6/4.7 跃升至标配 **1M 上下文窗口 + 128K 输出 + Adaptive Thinking** 的 **Claude 5.5 家族**（Opus 5.5、Sonnet 5.5、Haiku 5.5），并在 Opus 之上开辟了面向极限软件工程与前沿科研推理的第四档旗舰——**Claude Fable 5.2**（及受限版 Mythos 5.2）。配合按模型保存的 Effort 等级与独立解耦的 `/effort ultracode`，代理循环的推理深度真正实现了按需伸缩。
 
 ---
 
-## 23.4 MCP 生态的未来
+## 23.4 MCP 与开放代理协议的新纪元（2026.11）
 
-MCP 是 AI 工程领域近一年来最重要的"基础设施级"事件。它的发展节奏值得每个 AI 工程师跟进。
+如果说 2025 年是 MCP 的诞生与普及年，那么 2026 年就是整个 AI 代理基础设施完成**云原生无状态重构**与**中立基金会标准化**的分水岭。
 
-### MCP Tasks 原语稳定
+### `2026-07-28` 规范：MCP 的无状态架构重构（Stateless Core）
 
-目前 MCP 规范中的 Tasks 还是 Experimental，用于"长时间运行的任务（数小时到数天）"。一旦稳定，CI/CD、数据 ETL、长文档生成都能用 MCP 自然表达。
+针对早期有状态双向会话在 Serverless 与大规模网关集群下的扩展瓶颈，2026 年 7 月底发布的 **MCP `2026-07-28` 规范**完成了脱胎换骨的升级：
+- **去会话化与自描述请求**：移除强制 `initialize` 握手与 `Mcp-Session-Id`，每个请求在 `_meta` 中自带协议版本与客户端能力，按需通过 `server/discover` 探测能力。
+- **多轮请求（MRTR）**：服务端需要额外输入时直接返回 `input_required`，由客户端补齐答案后重试，取代依赖长连接的反向 Sampling/Elicitation。
+- **网关路由头与 Extensions 框架**：通过 `Mcp-Method` 与 `Mcp-Name` HTTP 头实现免解包网关鉴权；确立正式的 **Extensions** 扩展框架，将长耗时 **MCP Tasks**、**MCP Apps** 与企业托管授权纳入标准扩展。
+- **SDK v2 拆包**：TypeScript SDK 拆分为面向无状态规范的 `@modelcontextprotocol/server` 与 `@modelcontextprotocol/client`（`2.4.0`），同时保留 `@modelcontextprotocol/sdk`（`1.32.2`）维护 `2025-11-25` 兼容生态。
 
-### 10+ 语言官方 SDK
+### Official MCP Registry 突破 48,600+ 活跃服务
 
-Tier 1（TypeScript/Python/C#/Go）、Tier 2（Java/Rust）、Tier 3（Swift/Ruby/PHP）、规划中（Kotlin）。**任何语言写的工具都能被 AI 调用**这件事，本身就是革命性的。
+由 Anthropic、GitHub、Microsoft 等共建的官方注册中心收录的活跃公开 MCP Server 已从 2025 年底的约 1 万个激增至 **48,600+ 个**（多源聚合突破 11.4 万个），企业级网关（如 AAIF `agentgateway`、AWS AgentCore Gateway、Google Agent Registry）全面普及。
 
-### 跨厂商兼容性提升
+### Linux 基金会 AAIF 与 ACP 协议：跨厂商标准大合流
 
-Cursor、ChatGPT、VS Code Copilot、Cline、Cody 都已支持 MCP。一个 MCP Server 可以一次开发，多处使用。
-
-**给你的启示**：你写的 MCP Server，**不是为 Claude 写的，是为整个 AI 生态写的**——这是最大的杠杆点。
-
-### MCP Registry 中央化
-
-`api.anthropic.com/mcp-registry/v0/servers` 是 Anthropic 维护的官方注册中心。社区也有 `mcp.so`、`smithery.ai` 等第三方注册中心。**MCP 的"npm/pypi 时刻"正在到来**。
+- **Agentic AI Foundation（AAIF，https://aaif.io）**：隶属 Linux 基金会、汇聚 305+ 成员机构的中立组织，现已托管 **10 大开放标准**——包括 `MCP`、已被 60,000+ 仓库采用的 `AGENTS.md`（Claude Code `v2.1.277+` 已支持在缺少 `CLAUDE.md` 时自动回退加载）、Anthropic 于 2026 年 10 月正式捐赠的 `Agent Skills`（`SKILL.md` 规范）、`A2A` 跨代理协议，以及 OpenAI 贡献的 `Open Responses`、Hugging Face 的 `OpenEnv` 与阿里巴巴的 `OpenSandbox`。
+- **Agent Client Protocol（ACP）**：由 Zed 与 JetBrains 联合发起的“AI 代理版 LSP”（JSON-RPC 2.0 over `stdio`），让 Zed、JetBrains IDE 与 OpenHands Agent Canvas 能够以统一协议并排挂载 Claude Code、OpenAI Codex、Gemini CLI 与 OpenCode。
 
 ---
 
@@ -181,99 +172,77 @@ Cursor、ChatGPT、VS Code Copilot、Cline、Cody 都已支持 MCP。一个 MCP 
 
 完成本课程后，下一步可以走哪？以下是几条推荐路径，选适合自己的就好。
 
-### 路径一：贡献 MCP Server 到官方注册中心
+### 路径一：开发支持 `2026-07-28` 规范的 MCP Server 并发布至官方 Registry
 
-最直接的成果输出：把项目二的"项目分析器"扩展成生产级 MCP Server，发布到 npm，提交到 MCP Registry。
+最直接的成果输出：把项目二的"项目分析器"升级到 `@modelcontextprotocol/server` v2 无状态架构，发布到 npm，并编写 `server.json` 提交到 Official MCP Registry。
 
-**学习收益**：
-- 真实用户的 issue 让你看到自己的盲区
-- 加入 MCP 生态贡献者社区
-- 简历上的高质量项目
+**起点**：[Official MCP Registry 仓库](https://github.com/modelcontextprotocol/registry) ｜ [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 
-**起点**：[官方 MCP Server 模板](https://github.com/modelcontextprotocol)
+### 路径二：基于 `@anthropic-ai/claude-agent-sdk` 构建生产级应用
 
-### 路径二：基于 Agent SDK 构建生产级应用
-
-把项目三的多代理系统，升级为某个垂直场景的产品：
-- 自动化代码审查 SaaS
-- AI 文档生成与维护工具
-- 自动化测试生成代理
-- 数据科学 EDA 助手
-
-**学习收益**：
-- 把"会写 Demo"变成"会做产品"
-- 学习生产级运维：监控、限流、计费、错误恢复
+把项目三的多代理系统，结合独立分包后的 Claude Agent SDK（TypeScript `v0.3.326` / Python `v0.2.183`）升级为垂直场景产品：
+- 自动化代码审查与安全回归流水线
+- AI 架构文档生成与持续演进守护进程
+- 结合 `claude plugin eval` 的团队专属插件与 `SKILL.md` 资产库
 
 **起点**：[claude-agent-sdk-demos](https://github.com/anthropics/claude-agent-sdk-demos)
 
-### 路径三：探索 Routines（云端定时代理）
+### 路径三：探索 Cloud Scheduled Tasks 与 Channels 自治闭环
 
-把"本地手动触发"的工具升级为"事件驱动 + 定时调度"的自治系统：
-- 每周一自动开 cleanup PR
-- 监控某个开源仓库的新 issue 并初步分类
-- 每日生成产品周报
+把"本地手动触发"的工具升级为"云端事件驱动 + 本机实时推流"的全天候系统：
+- 用 Cloud Scheduled Tasks 监听 GitHub PR/Issue 自动完成初审与复现
+- 用 Channels 将线上 Sentry/Prometheus 告警直接推进开发机本地会话定位根因
 
-**学习收益**：
-- 学习云端 agent 与本地 agent 的差异
-- 理解 schedule、event、cron 在 AI agent 中的角色
+**起点**：Claude Code 官方文档 Cloud Scheduled Tasks 与 Channels 章节
 
-**起点**：`anthropic-skills:schedule` skill、Anthropic Routines 官方文档
+### 路径四：参与 AAIF 开放生态与开源代理共建
 
-### 路径四：贡献回 Claude Code 本身
+为 `Agent Skills`（`agentskills.io`）、`AGENTS.md`、`ACP` 协议适配器或 Claude Code 官方仓库贡献 Issue、评测基准与生态插件。
 
-Claude Code 接收社区贡献——bug 报告、feature request、文档改进。
-
-**学习收益**：
-- 直接和 Anthropic 工程师交流
-- 看到自己的代码进入数百万开发者的工具
-
-**起点**：[GitHub Issues](https://github.com/anthropics/claude-code/issues)（如果开放）、Discord 社区
+**起点**：[Claude Code GitHub](https://github.com/anthropics/claude-code) ｜ [Agentic AI Foundation](https://aaif.io)
 
 ### 路径五：研究 + 写作
 
-把课程中你觉得有价值的部分，用自己的语言写成文章/视频。教是最好的学。
+把课程中你觉得有价值的部分，用自己的语言写成文章或技术分享。教是最好的学。
 
 **话题示例**：
-- 《为什么 AI 编程代理都选 React/Ink？》
-- 《MCP 协议设计精读：一个跨厂商标准是怎么诞生的》
-- 《拆解 Claude Code 的四种上下文压缩策略》
-
-**学习收益**：被迫深入理解、积累影响力、连接更多同好
+- 《从 StreamingToolExecutor 到 Code Mode：AI 代理工具调度的两次跃迁》
+- 《精读 MCP 2026-07-28：为什么协议核心从有状态会话走向了无状态？》
+- 《拆解 Claude Code 的四种上下文压缩策略与 Prompt Cache 协同》
 
 ---
 
-## 23.6 社区资源与参考链接
+## 23.6 社区资源与参考链接（2026.11 校对版）
 
-### 官方资源
+### Anthropic 与 Claude Code 官方资源
 
-- **Claude Code 文档**：https://code.claude.com/docs
-- **Claude Agent SDK Python**：https://github.com/anthropics/claude-agent-sdk-python
-- **Claude Agent SDK TypeScript**：https://github.com/anthropics/claude-agent-sdk-typescript
-- **Agent SDK Demos**：https://github.com/anthropics/claude-agent-sdk-demos
-- **Agent SDK Workshop**：https://github.com/anthropics/agent-sdk-workshop
-- **Anthropic API Docs**：https://docs.anthropic.com
+- **Claude Code 官方文档与 Changelog**：https://code.claude.com/docs
+- **Claude Code GitHub Releases（最新 `v2.1.326`）**：https://github.com/anthropics/claude-code/releases
+- **Claude Agent SDK TypeScript（`@anthropic-ai/claude-agent-sdk`）**：https://github.com/anthropics/claude-agent-sdk-typescript
+- **Claude Agent SDK Python（`claude-agent-sdk`）**：https://github.com/anthropics/claude-agent-sdk-python
+- **Agent SDK Demos & Workshop**：https://github.com/anthropics/claude-agent-sdk-demos ｜ https://github.com/anthropics/agent-sdk-workshop
+- **Claude Platform API 文档（API `2026-10-21`）**：https://docs.anthropic.com
 
-### MCP 生态
+### MCP 与开放代理标准（AAIF / ACP）
 
-- **MCP 规范**：https://modelcontextprotocol.io
-- **MCP GitHub**：https://github.com/modelcontextprotocol
-- **MCP TypeScript SDK**：https://github.com/modelcontextprotocol/typescript-sdk
-- **MCP Python SDK**：https://github.com/modelcontextprotocol/python-sdk
-- **第三方 Registry**：https://mcp.so、https://smithery.ai
+- **MCP 官方规范（最新 `2026-07-28`）**：https://modelcontextprotocol.io
+- **Official MCP Registry**：https://github.com/modelcontextprotocol/registry
+- **MCP 官方 SDK 组织**：https://github.com/modelcontextprotocol
+- **Agentic AI Foundation（Linux 基金会）**：https://aaif.io
+- **AGENTS.md 开放规范**：https://agents.md
+- **Agent Skills（`SKILL.md`）开放规范**：https://agentskills.io
+- **Agent Client Protocol（ACP）**：https://zed.dev/acp
+- **社区 MCP 聚合导航**：https://mcp.so ｜ https://smithery.ai ｜ https://pulsemcp.com
 
-### 相关工具与对比
+### 主流 AI 编程代理与开源生态对照
 
-- **Cursor**：https://cursor.sh
-- **GitHub Copilot Workspace**：https://githubnext.com/projects/copilot-workspace
-- **OpenHands**：https://github.com/All-Hands-AI/OpenHands
-- **Devin**：https://www.cognition-labs.com/devin
-
-### 持续学习的频道
-
-- **Anthropic 官方博客**：每个新版本的 Release Notes 都值得读一遍
-- **MCP Discord** / **Anthropic Discord**：实时讨论、官方人员答疑
-- **Hacker News**：Claude Code 相关讨论的高质量入口
-- **arxiv.org**：AI 代理领域的学术论文（搜索 "tool use"、"AI agent"、"LLM autonomy"）
+- **OpenAI Codex CLI（Apache 2.0）**：https://github.com/openai/codex
+- **Cursor**：https://cursor.com
+- **GitHub Copilot Coding Agent**：https://github.com/features/copilot
+- **OpenHands（MIT）**：https://github.com/All-Hands-AI/OpenHands
+- **OpenCode（MIT）**：https://github.com/sst/opencode
+- **Google Gemini CLI（Apache 2.0）**：https://github.com/google-gemini/gemini-cli
+- **Devin（Cognition）**：https://cognition.ai
 
 ---
 
@@ -306,16 +275,14 @@ Claude Code 接收社区贡献——bug 报告、feature request、文档改进�
 
 ---
 
-## 23.8 v2.0 重构说明（写给读者）
+## 23.8 课程版本演进说明（写给读者）
 
-本课程经历过一次大幅重构（v2.0，2026-04-30）：
-- 章节数从 19 → 22（+ 开篇 + 结束语 = 24 单元）
-- 新增 3 章：Ch14 Plugins+Commands、Ch18 SDK、Ch19 Bridge+Remote
-- 配图从 77 个占位 → ~270 张统一 hand-drawn-blue 风格 infographic
-- 全书数字与 v2.1.88 源码 1:1 校对，详见 `docs/canonical-numbers.md`
-- 新增覆盖：Vim、Keybindings、Companion Sprite、cost-tracker、tokenBudget、bridge/、voice/
-
-完整重构 spec：`docs/superpowers/specs/2026-04-30-course-restructure-design.md`。
+- **v2.1 全网最新生态更新（2026-11）**：
+  - 保留 **Claude Code v2.1.88** 源码行号与核心数字 1:1 精确基线，新增 [`docs/2026-latest-updates.md`](./docs/2026-latest-updates.md) 及各章末尾 **「2026 演进补充」**，完整覆盖至 **Claude Code `v2.1.326`**（Code Mode、Auto Mode 默认化、五层递归子代理、Cloud Scheduled Tasks、Channels、JavaScript Mods、`AGENTS.md` 原生回退）。
+  - 同步升级模型矩阵与实战项目依赖至 **Claude 5.5 家族 / Fable 5.2**、`@anthropic-ai/sdk` `^1.9.0`（API `2026-10-21`）、`@anthropic-ai/claude-agent-sdk` `0.3.326`、MCP `2026-07-28` 无状态协议规范，以及 Linux 基金会 **AAIF** 与 **ACP** 开放标准全景。
+- **v2.0 架构重构（2026-04-30）**：
+  - 章节数从 19 → 22（+ 开篇 + 结束语 = 24 单元），新增 Ch14 Plugins+Commands、Ch18 SDK、Ch19 Bridge+Remote。
+  - 统一全书 hand-drawn-blue 风格 infographic 配图，补齐 Vim、Keybindings、Companion Sprite、cost-tracker、tokenBudget、bridge/、voice/ 源码剖析。
 
 ---
 

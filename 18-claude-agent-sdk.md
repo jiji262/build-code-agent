@@ -127,7 +127,8 @@ src/src/
 为了让"SDK 和 CLI 共享代码"这件事更具象，看一段最小调用：
 
 ```typescript
-import { query } from '@anthropic-ai/claude-code';
+// 注：2026 年起对外独立包已拆分为 '@anthropic-ai/claude-agent-sdk'（v0.3.326）；v2.1.88 早期曾与 CLI 同包导出
+import { query } from '@anthropic-ai/claude-agent-sdk';
 
 for await (const message of query({
   prompt: '列出当前目录的所有 markdown 文件',
@@ -2209,7 +2210,16 @@ console.log(`C (leaky bucket): $${c.cost.toFixed(4)}\n${c.text}`);
 
 6. **EntryPoints 多入口架构 + 控制协议**让同一份核心代码能被多种宿主驱动：CLI（终端 UI）、MCP server（IDE 集成）、SDK in-process（Node 程序）、Python SDK 通过 spawn + SDKControlRequest 协议接入。控制协议提供 interrupt/set_model/set_permission_mode/permission_response/hook_callback 等元操作。
 
-7. **生产部署要小心几件事**：用 API key（不用 OAuth），设 maxTurns 防失控，监控 total_cost_usd，让出 rate limit，用 `permissionMode: 'bypassPermissions'` 避免交互弹窗。会话默认存 `~/.claude/projects/`，Docker 部署要 mount 出来才能持久化。
+7. **生产部署要小心几件事**：用 API key（不用 OAuth），设 maxTurns 防失控，监控 total_cost_usd，让出 rate limit，显式声明权限策略（注意 `v2.1.302+` 起 SDK 默认走严格的 Manual 模式，无人值守自动化需显式配置 allow 规则或 `bypassPermissions` / `auto`）。会话默认存 `~/.claude/projects/`，Docker 部署要 mount 出来才能持久化。
+
+### 2026 演进补充：独立分包（`v0.3.326` / `v0.2.183`）与运行期增强
+
+虽然在 Claude Code 主仓库源码树内部，SDK 类型与控制协议依然住在 `src/entrypoints/sdk/`，但在对外分发与运行时细节上，2026 年下半年完成了四项重要演进：
+
+1. **正式更名与包拆分**：对外发布的 SDK 已从早期的 `@anthropic-ai/claude-code` 独立拆分为专属包——TypeScript 版为 **`@anthropic-ai/claude-agent-sdk`**（截至 2026 年 11 月中旬最新为 **`0.3.326`**），Python 版由冻结在 `0.0.25` 的 `claude-code-sdk` 迁移为 **`claude-agent-sdk`**（最新 **`0.2.183`**，导入包名 `claude_agent_sdk`，配置类 `ClaudeAgentOptions`），两者均内置绑定并与 CLI `v2.1.326` 保持 1:1 能力同步，生产代码应统一改写为 `import { query } from '@anthropic-ai/claude-agent-sdk'`。
+2. **默认权限收紧（`v2.1.302`）**：交互式 CLI 默认开启 Auto Mode，但 SDK 与 `claude -p` 默认锁定为 **Manual（`default`）模式**，防止宿主程序在未声明策略时意外放行写操作。
+3. **MCP 握手与协议升级（`v0.3.326`）**：弃用通过命令行 `argv` 传递 `mcpServers`（转向在 `initialize` 控制阶段下发）；发往 SDK 内置 MCP Server 的 JSON-RPC 请求 ID 统一改为字符串；并新增 `managed_mcp_arrived` 系统事件，用于在管理员下发企业级 `managed-mcp.json` 中止用户自定义 MCP 时通知宿主。
+4. **冷启动与恢复加固（`v0.3.326`）**：当启用 Tool Search 按需加载工具时，`SpareProcess.claim()` 移除了原先对 stdio MCP Server 最高 500ms 的首轮等待；修复了初始化期间到达的 Hook 请求竞争条件及崩溃后 `resumeSessionAt` 丢失最近轮次的问题。
 
 下一章我们会继续往外走一层，看 `bridge/`（claude.ai 远控）和 `remote/`（远程 Agent 派遣）这两个把"本地 Claude Code"和"云端 Claude.ai"打通的子系统——它们才是把 Claude Code 从单机工具升级成"可远控 Agent"的关键。
 

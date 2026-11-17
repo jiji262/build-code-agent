@@ -281,85 +281,75 @@ export type Tool<
 
 ---
 
-## 1.3 行业横向对比
+## 1.3 行业横向对比（2026 年底全景）
 
-Claude Code 不是唯一的 AI 编程工具。理解它在行业格局中的位置，有助于我们理解它的设计取舍。
+Claude Code 不是唯一的 AI 编程工具。到 2026 年底，AI 编程代理已经分化出清晰的三大阵营：**终端原生的脚本化 Harness**、**AI 原生 IDE / 插件** 与 **多代理云端编排平台**。理解它在行业格局中的位置，有助于我们看清每一个架构取舍。
 
-### 1.3.1 Claude Code
+### 1.3.1 Claude Code（Anthropic）
 
-**定位**：终端原生的通用编程代理。
+**定位**：终端起步、全端同构的旗舰级通用编程代理。
 
-- **运行环境**：终端（Bun/Node.js），通过 React/Ink 渲染 TUI
-- **代理循环**：显式的 `while(true)` + `AsyncGenerator`，完全自主
-- **工具系统**：内置 40 个工具 + MCP 协议扩展 + 自定义 Skill
-- **模型**：Claude 系列（Opus/Sonnet/Haiku），支持 Bedrock/Vertex
-- **特色**：权限安全体系、多代理协作（Agent Swarm）、上下文自动压缩
+- **运行环境**：终端（Bun/Node.js + React/Ink TUI），并延伸至 VS Code、JetBrains、Desktop App、Web 与云端定时沙箱
+- **代理循环**：显式的 `while(true)` + `AsyncGenerator`；`v2.1.323+` 新增 **Code Mode**（在受控 Bun REPL 中编写批量 JavaScript 串联工具并本地过滤结果）
+- **工具系统**：内置 40 个工具 + MCP 协议扩展 + Agent Skills（`SKILL.md`）+ JavaScript Mods 插件
+- **模型**：Claude 5.5 系列（Opus 5.5 / Sonnet 5.5 / Haiku 5.5）及前沿推理层级 Fable 5.2（全系 1M 上下文，支持 Bedrock / Vertex / Foundry）
+- **特色**：多层权限与 Auto Mode 安全分类器、多代理协作（Agent Teams / Coordinator）、四层上下文压缩与 Prompt Cache 深度优化
 
-### 1.3.2 Cursor
+### 1.3.2 OpenAI Codex
 
-**定位**：IDE 深度集成的 AI 编辑器。
+**定位**：终端开源 CLI 与云端异步沙箱一体化的编程代理。
 
-- **运行环境**：基于 VS Code 的 fork
-- **代理循环**：在编辑器内部运行，与编辑器状态深度集成
-- **工具系统**：内置工具 + 编辑器 API 深度集成
-- **模型**：多模型支持（Claude/GPT/自定义）
-- **特色**：Tab 补全、Composer 多文件编辑、codebase indexing
+- **运行环境**：开源本地 CLI（`@openai/codex`，Apache 2.0）+ ChatGPT Desktop + IDE 插件 + 云端异步任务容器
+- **代理循环**：高吞吐推理循环，深度依赖分层 `AGENTS.md` 指令链
+- **工具系统**：跨 macOS / Linux / Windows 原生 OS 级沙箱执行 + MCP 与 Agent Skills 支持
+- **模型**：OpenAI GPT-5.5 / 6.1 与 Codex 专用推理模型系列
+- **与 Claude Code 的关键差异**：两者同属“终端原生 + 全端延伸”路线，且各自深度绑定自家旗舰模型；Codex CLI 本身开源并与 ChatGPT 订阅无缝打通，而 Claude Code 在 Hook 生命周期扩展性、多代理 Swarm/Teams 与复杂长程重构稳定性上沉淀更深。
 
-**与 Claude Code 的关键差异**：Cursor 选择了 IDE 深度集成路线，获得了更丰富的 UI 交互能力（diff 视图、内联建议），但牺牲了终端的可组合性和 IDE 中立性。
+### 1.3.3 Cursor
 
-### 1.3.3 GitHub Copilot Workspace
+**定位**：IDE 深度集成的 AI 原生代码编辑器。
 
-**定位**：基于 GitHub 生态的云端编程代理。
+- **运行环境**：基于 VS Code 的独立 fork（辅以 Cloud Agents 与 CLI）
+- **代理循环**：编辑器内联 Agent + 基于隔离 Git Worktree 的后台云端代理（Cloud Agents）
+- **工具系统**：内置工具 + 编辑器 AST/索引 API + MCP + Origin 应用市场
+- **模型**：多模型支持（Claude / OpenAI / Gemini + 自研高速编辑模型 Composer 2.5）
+- **与 Claude Code 的关键差异**：Cursor 选择了 IDE 深度绑定路线，拥有业界顶尖的多文件视觉化 Diff 审查与 Tab 预测补全体验（2026 年亦新增手机端 Remote Control），但牺牲了纯终端工具跨编辑器（如 Neovim / JetBrains）的中立性与管道可组合性。
 
-- **运行环境**：云端（GitHub 托管）
-- **代理循环**：Plan → Implement → Validate 三阶段
-- **工具系统**：GitHub Actions 集成
-- **模型**：GPT-4 系列 + Codex
-- **特色**：从 Issue 自动生成 PR，与 GitHub 生态深度绑定
+### 1.3.4 GitHub Copilot Coding Agent（原 Copilot Workspace 演进）
 
-**与 Claude Code 的关键差异**：Workspace 是云端优先的方案，强调与 GitHub 工作流的一体化体验，而 Claude Code 是本地优先，强调开发者对执行过程的完全控制。
+**定位**：深度植根 GitHub 工作流与多 IDE 的企业级多代理平台。
 
-### 1.3.4 Windsurf (Codeium)
+- **运行环境**：多 IDE 插件（VS Code、JetBrains、Xcode 等）+ GitHub.com 云端 Actions 沙箱
+- **代理循环**：本地交互式 Agent Mode + 云端从 Issue 自动提交 PR 并完成 Agentic Code Review（早期的实验项目 Copilot Workspace 已正式整合演进为原生 Copilot Coding Agent）
+- **模型与多代理宿主**：多模型支持，且在 VS Code 与 GitHub 平台内**原生支持直接托管调度 Claude 与 Codex 代理**，统一纳入企业 AI Credits 账单治理
+- **与 Claude Code 的关键差异**：Copilot 的核心护城河在于企业级权限/账单收敛与 GitHub Issue-to-PR 闭环，而 Claude Code 则是更纯粹、更底层的自主工程执行内核。
 
-**定位**：IDE 集成的"Flow"式编程代理。
+### 1.3.5 Devin 与 Windsurf（Cognition 体系）
 
-- **运行环境**：基于 VS Code 的 fork
-- **代理循环**：Cascade 模式（多步规划 + 执行）
-- **模型**：多模型支持
-- **特色**：Cascade 多步推理、Supercomplete 上下文补全
+**定位**：全自主云端 AI 软件工程师（Devin）与 Flow 式 AI IDE（Windsurf）。
 
-### 1.3.5 Devin
+- **运行环境**：Devin 运行在隔离云端沙箱（完整 Linux + 浏览器）；Windsurf 基于本地 VS Code fork（Cascade 多步推理流）
+- **与 Claude Code 的关键差异**：Devin 从一开始就面向异步无人值守的端到端交付；Claude Code 则以本机**人在环中**（human-in-the-loop）起家，再通过 Cloud Scheduled Tasks（原 Routines）与 Channels 向云端无人值守延伸。
 
-**定位**：全自主的云端 AI 工程师。
+### 1.3.6 OpenHands、OpenCode 与开放协议生态（ACP）
 
-- **运行环境**：云端沙箱（完整的 Linux 环境 + 浏览器）
-- **代理循环**：高度自主，可长时间运行
-- **工具系统**：完整的 shell、浏览器、编辑器
-- **特色**：端到端自主完成任务，最小化人工干预
+**定位**：开源无锁定的编程代理与多代理编排底座。
 
-**与 Claude Code 的关键差异**：Devin 追求最大程度的自主性，运行在隔离的云端沙箱中。Claude Code 则运行在开发者本机，强调**人在环中**（human-in-the-loop）——开发者随时可以看到并干预执行过程。
-
-### 1.3.6 OpenHands (原 OpenDevin)
-
-**定位**：开源的 AI 编程代理框架。
-
-- **运行环境**：Docker 沙箱
-- **代理循环**：可插拔的代理架构
-- **模型**：多模型支持
-- **特色**：开源、可定制、社区驱动
+- **OpenHands**（MIT 开源）：已从单一 Docker 沙箱代理演进为企业级编排控制中心（**Agent Canvas**），通过 Zed 与 JetBrains 联合发起的 **ACP（Agent Client Protocol，AI 代理版 LSP）** 协议，可在独立 Git Worktree 中并行挂载调度 Claude Code、Codex、Gemini CLI 与自有代理。
+- **OpenCode / Gemini CLI**：OpenCode（MIT）作为高人气开源终端/桌面代理，零锁定支持 75+ 模型厂商与 Ollama 本地模型；Google 的开源 Gemini CLI（Apache 2.0）在 2026 年年中转向聚焦企业级 Vertex AI / Code Assist，个人开发者工作流则分流至 Antigravity 平台。
 
 ### 架构路线对比总结
 
-![6 个工具的二维对比矩阵图。X 轴是"本地←→云端"，Y 轴是"IDE 集成←→终端/独立"。Claude Code 在左下（本地+终端），Cursor/Windsurf 在左上（本地+IDE），Devin/Copilot Workspace 在右侧（云端）](images/ch01/02-img02.png)
+![6 个工具的二维对比矩阵图。X 轴是"本地←→云端"，Y 轴是"IDE 集成←→终端/独立"。Claude Code 在左下（本地+终端），Cursor/Windsurf 在左上（本地+IDE），Devin/Copilot 在右侧（云端）](images/ch01/02-img02.png)
 
-| 工具 | 运行环境 | 自主程度 | 代理循环 | 扩展机制 |
-|------|---------|---------|---------|---------|
-| **Claude Code** | 本地终端 | 高（人在环中） | AsyncGenerator 循环 | MCP + Skills |
-| **Cursor** | 本地 IDE | 中 | IDE 内嵌 | 编辑器 API |
-| **Copilot Workspace** | 云端 | 中 | Plan-Implement-Validate | GitHub Actions |
-| **Windsurf** | 本地 IDE | 中-高 | Cascade | 编辑器 API |
-| **Devin** | 云端沙箱 | 极高 | 全自主 | 沙箱环境 |
-| **OpenHands** | Docker 沙箱 | 可配置 | 可插拔 | 插件架构 |
+| 工具 | 核心形态 | 开源性 | 代理循环与特色 | 扩展与互操作标准 |
+|------|---------|-------|---------------|-----------------|
+| **Claude Code** | 终端 + 多端同构 | 闭源 | AsyncGenerator + Code Mode + Agent Teams | MCP + `SKILL.md` + `CLAUDE.md`/`AGENTS.md` |
+| **OpenAI Codex** | 终端 CLI + 云端沙箱 | CLI 开源 | 高速推理循环 + 原生 OS 沙箱 | MCP + `SKILL.md` + `AGENTS.md` |
+| **Cursor** | 独立 AI IDE + Cloud | 闭源 | 编辑器内联 + Git Worktree 云代理 | 编辑器 API + MCP + `SKILL.md` |
+| **GitHub Copilot** | 多 IDE 插件 + GitHub 云 | 闭源 | Issue-to-PR 闭环 + 多厂商代理宿主 | GitHub Actions + MCP + `SKILL.md` |
+| **OpenCode** | 终端 TUI + Desktop | MIT 开源 | 75+ 模型切换 + 内置 LSP | MCP + `SKILL.md` + ACP |
+| **OpenHands** | Web Agent Canvas + 云 | MIT 开源 | 多代理并行编排 + Webhook 自治 | ACP 宿主 + MCP + Python SDK |
 
 理解这些差异不是为了评判优劣，而是为了理解 **Claude Code 的设计决策是在什么约束空间中做出的**。
 
